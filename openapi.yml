@@ -874,12 +874,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [discountId]
-              properties:
-                discountId:
-                  type: string
-                  format: uuid
+              $ref: '#/components/schemas/OrderDiscountCreate'
       responses:
         '201':
           description: Discount applied
@@ -1754,6 +1749,9 @@ components:
           nullable: true
         taxCode:
           type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
         active:
           type: boolean
         variationGroups:
@@ -2161,6 +2159,14 @@ components:
         appliedAmount:
           type: number
           format: decimal
+
+    OrderDiscountCreate:
+      type: object
+      required: [discountId]
+      properties:
+        discountId:
+          type: string
+          format: uuid
 
     Payment:
       type: object
