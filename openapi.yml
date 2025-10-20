@@ -38,8 +38,6 @@ tags:
     description: Discount management
   - name: Inventory
     description: Inventory tracking and adjustments
-  - name: Reports
-    description: Business reporting and analytics
 
 security:
   - bearerAuth: []
@@ -540,6 +538,100 @@ paths:
       responses:
         '204':
           description: Product deactivated
+
+  /products/{productId}/staff:
+    get:
+      tags: [Products]
+      summary: List staff eligible for a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of eligible staff
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductStaff'
+    post:
+      tags: [Products]
+      summary: Link staff to a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductStaffCreate'
+      responses:
+        '201':
+          description: Staff linked to product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductStaff'
+
+  /products/{productId}/staff/{staffId}:
+    put:
+      tags: [Products]
+      summary: Update product-staff link
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: staffId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductStaffUpdate'
+      responses:
+        '200':
+          description: Product-staff link updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductStaff'
+    delete:
+      tags: [Products]
+      summary: Unlink staff from a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: staffId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Staff unlinked from product
 
   /products/{productId}/variations:
     get:
@@ -1394,150 +1486,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/InventoryAdjustment'
 
-  /reports/sales:
+  /businesses/{registrationNumber}/staff:
     get:
-      tags: [Reports]
-      summary: Sales report
+      tags: [Staff]
+      summary: List staff for a business
       parameters:
-        - name: fromDate
-          in: query
+        - name: registrationNumber
+          in: path
           required: true
           schema:
             type: string
-            format: date-time
-        - name: toDate
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - name: groupBy
-          in: query
-          schema:
-            type: string
-            enum: [day, week, month]
-            default: day
       responses:
         '200':
-          description: Sales report
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  fromDate:
-                    type: string
-                    format: date-time
-                  toDate:
-                    type: string
-                    format: date-time
-                  totalSales:
-                    type: number
-                    format: decimal
-                  totalOrders:
-                    type: integer
-                  averageOrderValue:
-                    type: number
-                    format: decimal
-                  breakdown:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        period:
-                          type: string
-                        sales:
-                          type: number
-                          format: decimal
-                        orders:
-                          type: integer
-
-  /reports/products/top-selling:
-    get:
-      tags: [Reports]
-      summary: Top selling products report
-      parameters:
-        - name: fromDate
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - name: toDate
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: Top selling products
+          description: List of staff
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    productId:
-                      type: string
-                      format: uuid
-                    productName:
-                      type: string
-                    quantitySold:
-                      type: integer
-                    revenue:
-                      type: number
-                      format: decimal
-
-  /reports/taxes:
-    get:
-      tags: [Reports]
-      summary: Tax report
-      parameters:
-        - name: fromDate
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date-time
-        - name: toDate
-          in: query
-          required: true
-          schema:
-            type: string
-            format: date-time
-      responses:
-        '200':
-          description: Tax report
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  totalTaxCollected:
-                    type: number
-                    format: decimal
-                  byTaxCode:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        taxCode:
-                          type: string
-                        taxName:
-                          type: string
-                        taxPercentage:
-                          type: number
-                          format: decimal
-                        totalAmount:
-                          type: number
-                          format: decimal
+                  $ref: '#/components/schemas/Staff'
 
 components:
   securitySchemes:
@@ -1581,6 +1548,9 @@ components:
           type: string
           format: email
           nullable: true
+        vatCode:
+          type: string
+          nullable: true
         currencyCode:
           type: string
           example: USD
@@ -1600,6 +1570,8 @@ components:
         email:
           type: string
           format: email
+        vatCode:
+          type: string
         currencyCode:
           type: string
 
@@ -1615,6 +1587,8 @@ components:
         email:
           type: string
           format: email
+        vatCode:
+          type: string
 
     Staff:
       type: object
@@ -1636,6 +1610,9 @@ components:
         role:
           type: string
           enum: [STAFF, OWNER, SUPERADMIN]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
         hireDate:
           type: string
           format: date
@@ -1661,6 +1638,10 @@ components:
         role:
           type: string
           enum: [STAFF, OWNER, SUPERADMIN]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          default: ACTIVE
         hireDate:
           type: string
           format: date
@@ -1680,6 +1661,9 @@ components:
         role:
           type: string
           enum: [STAFF, OWNER, SUPERADMIN]
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
 
     Customer:
       type: object
@@ -1764,6 +1748,10 @@ components:
         basePrice:
           type: number
           format: decimal
+        durationMinutes:
+          type: integer
+          description: Duration of the service in minutes.
+          nullable: true
         taxCode:
           type: string
         active:
@@ -1789,6 +1777,9 @@ components:
         basePrice:
           type: number
           format: decimal
+        durationMinutes:
+          type: integer
+          description: Duration of the service in minutes.
         taxCode:
           type: string
         active:
@@ -1805,6 +1796,9 @@ components:
         basePrice:
           type: number
           format: decimal
+        durationMinutes:
+          type: integer
+          description: Duration of the service in minutes.
         taxCode:
           type: string
         active:
@@ -1866,6 +1860,63 @@ components:
         priceDelta:
           type: number
           format: decimal
+
+    ProductStaff:
+      type: object
+      properties:
+        productStaffId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        staffId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        validFrom:
+          type: string
+          format: date-time
+          nullable: true
+        validTo:
+          type: string
+          format: date-time
+          nullable: true
+
+    ProductStaffCreate:
+      type: object
+      required: [staffId]
+      properties:
+        staffId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          default: ACTIVE
+        validFrom:
+          type: string
+          format: date-time
+        validTo:
+          type: string
+          format: date-time
+
+    ProductStaffUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+        validFrom:
+          type: string
+          format: date-time
+          nullable: true
+        validTo:
+          type: string
+          format: date-time
+          nullable: true
 
     Order:
       type: object
